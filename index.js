@@ -6,6 +6,7 @@ const minutesSpan = document.querySelector("span.value[data-minutes]");
 const secondsSpan = document.querySelector("span.value[data-seconds]");
 
 let userSelectedDate;
+let timerId;
 
 const options = {
   enableTime: true,
@@ -14,7 +15,7 @@ const options = {
   minuteIncrement: 1,
   onClose(selectedDates) {
     console.log(selectedDates[0]);
-    
+
     //перевірь чи вибрана дата не в минулому і виведи повідомлення
     //  "Please choose a date in the future"
     if (selectedDates[0] <= Date.now()) {
@@ -26,16 +27,49 @@ const options = {
       return;
     }
     // запиши значення вибраної дати в userSelectedDate
-    userSelectedDate = selectedDates[0]
-    startBtn.disabled = false
+    userSelectedDate = selectedDates[0];
+    startBtn.disabled = false;
   },
 };
 // створюємо новий flatpickr
 flatpickr(input, options);
 
 // нижче напиши код для обробки кліку кнопки старт
-startBtn.addEventListener("click", () => {
-})
+startBtn.addEventListener("click", onClick);
+
+function onClick() {
+  if (!userSelectedDate) return;
+
+  startBtn.disabled = true;
+  input.disabled = true;
+
+  timerId = setInterval(() => {
+    const currentTime = Date.now();
+const delta = Date.parse(userSelectedDate) - currentTime
+ 
+    if (delta <= 0) {
+      clearInterval(timerId);
+      timerId = null
+
+      iziToast.success({
+        title: "OK",
+        message: "Timer is over",
+      });
+
+startBtn.disabled = true;
+input.disabled = false;
+
+      return;
+    }
+
+    const { days, hours, minutes, seconds } = convertMs(delta);
+
+    daysSpan.textContent = pad(days);
+    hoursSpan.textContent = pad(hours);
+    minutesSpan.textContent = pad(minutes);
+    secondsSpan.textContent = pad(seconds);
+  }, 1000);
+}
 //допоміжні функції для обробки мілісекунд
 function convertMs(ms) {
   const second = 1000;
